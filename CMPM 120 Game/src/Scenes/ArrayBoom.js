@@ -15,6 +15,7 @@ class ArrayBoom extends Phaser.Scene {
         // This array will hold bindings (pointers) to bullet sprites
         this.my.sprite.bullet = [];   
         this.my.sprite.enemies = []; 
+        this.timesPlayed = 0; // This is used to keep track of how many times the game has been played
         this.maxBullets = 10;           // Don't create more than this many bullets
         this.playerLives = 3;
         this.myScore = 0;       // record a score as a class variable
@@ -49,12 +50,58 @@ class ArrayBoom extends Phaser.Scene {
         let my = this.my;
 
         my.sprite.player = this.add.sprite(game.config.width/2, game.config.height - 40, "spaceshipParts", "playerShip1_blue.png");
-        my.sprite.player.setScale(.5);
+        my.sprite.player.setScale(.75);
 
-        my.sprite.seedBomber = this.add.sprite(game.config.width/2, 80, "spaceshipParts", "enemyBlack4.png");
-        my.sprite.seedBomber.setScale(.5);
+        //my.sprite.seedBomber = this.add.sprite(game.config.width/2, 80, "spaceshipParts", "enemyBlack4.png");
+        //my.sprite.seedBomber.setScale(.75);
 
-        my.sprite.seedBomber.scorePoints = 25;
+        //here we are going to make the 3 lanes for the enimies
+        my.sprite.enemies[0] = this.add.sprite(50, 120, "spaceshipParts", "enemyBlack4.png");
+        my.sprite.enemies[0].setScale(.75);
+        my.sprite.enemies[1] = this.add.sprite(207, 120, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[1].setScale(.75);
+        my.sprite.enemies[2] = this.add.sprite(375, 120, "spaceshipParts", "enemyGreen3.png");
+        my.sprite.enemies[2].setScale(.75);
+        my.sprite.enemies[3] = this.add.sprite(532, 120, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[3].setScale(.75);
+        my.sprite.enemies[4] = this.add.sprite(700, 120, "spaceshipParts", "enemyBlack4.png");
+        my.sprite.enemies[4].setScale(.75);
+        my.sprite.enemies[5] = this.add.sprite(50, 200, "spaceshipParts", "enemyBlack4.png");
+        my.sprite.enemies[5].setScale(.75);
+        my.sprite.enemies[6] = this.add.sprite(207, 200, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[6].setScale(.75);
+        my.sprite.enemies[7] = this.add.sprite(375, 200, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[7].setScale(.75);
+        my.sprite.enemies[8] = this.add.sprite(532, 200, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[8].setScale(.75);
+        my.sprite.enemies[9] = this.add.sprite(700, 200, "spaceshipParts", "enemyBlack4.png");
+        my.sprite.enemies[9].setScale(.75);
+        my.sprite.enemies[10] = this.add.sprite(50, 280, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[10].setScale(.75);
+        my.sprite.enemies[11] = this.add.sprite(207, 280, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[11].setScale(.75);
+        my.sprite.enemies[12] = this.add.sprite(375, 280, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[12].setScale(.75);
+        my.sprite.enemies[13] = this.add.sprite(532, 280, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[13].setScale(.75);
+        my.sprite.enemies[14] = this.add.sprite(700, 280, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[14].setScale(.75);
+
+        my.sprite.enemies[0].scorePoints = 50;
+        my.sprite.enemies[1].scorePoints = 25;
+        my.sprite.enemies[2].scorePoints = 100;
+        my.sprite.enemies[3].scorePoints = 25;
+        my.sprite.enemies[4].scorePoints = 50;
+        my.sprite.enemies[5].scorePoints = 50;
+        my.sprite.enemies[6].scorePoints = 25;
+        my.sprite.enemies[7].scorePoints = 25;
+        my.sprite.enemies[8].scorePoints = 25;
+        my.sprite.enemies[9].scorePoints = 50;
+        my.sprite.enemies[10].scorePoints = 25;
+        my.sprite.enemies[11].scorePoints = 25;
+        my.sprite.enemies[12].scorePoints = 25;
+        my.sprite.enemies[13].scorePoints = 25;
+        my.sprite.enemies[14].scorePoints = 25;
 
         // Notice that in this approach, we don't create any bullet sprites in create(),
         // and instead wait until we need them, based on the number of space bar presses
@@ -87,7 +134,7 @@ class ArrayBoom extends Phaser.Scene {
         document.getElementById('description').innerHTML = '<h2>Array Boom.js</h2><br>A: left // D: right // Space: fire/emit // S: Next Scene'
 
         // Put score on screen
-        my.text.score = this.add.bitmapText(350, 0, "rocketSquare", "Score " + this.myScore);
+        my.text.score = this.add.bitmapText(450, 0, "rocketSquare", "Score " + this.myScore);
 
         // Put title on screen
         this.add.text(35, 5, "LIVES", {
@@ -123,7 +170,7 @@ class ArrayBoom extends Phaser.Scene {
             if (my.sprite.bullet.length < this.maxBullets) {
                 let bullet = this.add.sprite(
                     my.sprite.player.x, my.sprite.player.y-(my.sprite.player.displayHeight/2), "spaceshipParts", "laserBlue01.png" );
-                bullet.setScale(0.5);
+                bullet.setScale(0.75);
                 my.sprite.bullet.push(bullet);
             }
         }
@@ -151,33 +198,13 @@ class ArrayBoom extends Phaser.Scene {
                     enemy.y = -100;
                     // Update score
                     this.myScore += enemy.scorePoints;
+                    console.log(enemy.scorePoints);
                     this.updateScore();
                     // Play sound
                     this.sound.play("dadada", {
                         volume: .003   // Can adjust volume using this, goes from 0 to 1
                     });
                 }
-            }
-            if (this.collides(my.sprite.seedBomber, bullet)) {
-                // start animation
-                this.puff = this.add.sprite(my.sprite.seedBomber.x, my.sprite.seedBomber.y, "whitePuff03").setScale(0.25).play("puff");
-                // clear out bullet -- put y offscreen, will get reaped next update
-                bullet.y = -100;
-                my.sprite.seedBomber.visible = false;
-                my.sprite.seedBomber.x = -100;
-                // Update score
-                this.myScore += my.sprite.seedBomber.scorePoints;
-                this.updateScore();
-                // Play sound
-                this.sound.play("dadada", {
-                    volume: .003   // Can adjust volume using this, goes from 0 to 1
-                });
-                // Have new hippo appear after end of animation
-                this.puff.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-                    this.my.sprite.seedBomber.visible = true;
-                    this.my.sprite.seedBomber.x = Math.random()*config.width;
-                }, this);
-
             }
         }
 
@@ -190,8 +217,22 @@ class ArrayBoom extends Phaser.Scene {
             this.scene.start("fixedArrayBullet");
         }
 
+        if (this.enemyCheck()){
+            for (let bullet of my.sprite.bullet) {
+                bullet.y = -100;
+            }
+            this.timesPlayed++;
+            this.scene.restart()
+        }
+
     }
 
+    enemyCheck(){
+        for (let enemy of this.my.sprite.enemies) {
+            if (enemy.y > 0) {return false;}
+            }
+            return true;
+        }
     
     collides(a, b) {
         if (Math.abs(a.x - b.x) > (a.displayWidth/2 + b.displayWidth/2)) return false;
@@ -203,6 +244,4 @@ class ArrayBoom extends Phaser.Scene {
         let my = this.my;
         my.text.score.setText("Score " + this.myScore);
     }
-
 }
-         
