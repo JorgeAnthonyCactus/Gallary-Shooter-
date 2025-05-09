@@ -1,4 +1,4 @@
-class ArrayBoom extends Phaser.Scene {
+class GameScene extends Phaser.Scene {
     constructor() {
         super("arrayBoom");
 
@@ -13,11 +13,15 @@ class ArrayBoom extends Phaser.Scene {
         // Create a property inside "sprite" named "bullet".
         // The bullet property has a value which is an array.
         // This array will hold bindings (pointers) to bullet sprites
-        this.my.sprite.bullet = [];   
+        this.my.sprite.bullet = []; 
+        this.my.sprite.enemyBullets = [];   
+        this.my.sprite.lives = [];
+        this.playerInvincible = false;
         this.my.sprite.enemies = []; 
         this.timesPlayed = 0; // This is used to keep track of how many times the game has been played
         this.maxBullets = 10;           // Don't create more than this many bullets
-        this.playerLives = 3;
+        this.playerLives;
+        this.frameCount = 0;
         this.myScore = 0;       // record a score as a class variable
         // More typically want to use a global variable for score, since
         // it will be used across multiple scenes
@@ -27,6 +31,11 @@ class ArrayBoom extends Phaser.Scene {
         this.load.setPath("./assets/");
 
         this.load.atlasXML("spaceshipParts", "sheet.png", "sheet.xml");
+        
+        //done in preload so it only occures once if the game has just started
+        if(this.timesPlayed == 0){
+            this.playerLives = 3;
+        }
 
         // For animation
         this.load.image("whitePuff00", "whitePuff00.png");
@@ -68,11 +77,11 @@ class ArrayBoom extends Phaser.Scene {
         my.sprite.enemies[4].setScale(.75);
         my.sprite.enemies[5] = this.add.sprite(50, 200, "spaceshipParts", "enemyBlack4.png");
         my.sprite.enemies[5].setScale(.75);
-        my.sprite.enemies[6] = this.add.sprite(207, 200, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[6] = this.add.sprite(207, 200, "spaceshipParts", "enemyGreen3.png");
         my.sprite.enemies[6].setScale(.75);
         my.sprite.enemies[7] = this.add.sprite(375, 200, "spaceshipParts", "enemyRed1.png");
         my.sprite.enemies[7].setScale(.75);
-        my.sprite.enemies[8] = this.add.sprite(532, 200, "spaceshipParts", "enemyRed1.png");
+        my.sprite.enemies[8] = this.add.sprite(532, 200, "spaceshipParts", "enemyGreen3.png");
         my.sprite.enemies[8].setScale(.75);
         my.sprite.enemies[9] = this.add.sprite(700, 200, "spaceshipParts", "enemyBlack4.png");
         my.sprite.enemies[9].setScale(.75);
@@ -93,9 +102,9 @@ class ArrayBoom extends Phaser.Scene {
         my.sprite.enemies[3].scorePoints = 25;
         my.sprite.enemies[4].scorePoints = 50;
         my.sprite.enemies[5].scorePoints = 50;
-        my.sprite.enemies[6].scorePoints = 25;
+        my.sprite.enemies[6].scorePoints = 100;
         my.sprite.enemies[7].scorePoints = 25;
-        my.sprite.enemies[8].scorePoints = 25;
+        my.sprite.enemies[8].scorePoints = 100;
         my.sprite.enemies[9].scorePoints = 50;
         my.sprite.enemies[10].scorePoints = 25;
         my.sprite.enemies[11].scorePoints = 25;
@@ -107,6 +116,7 @@ class ArrayBoom extends Phaser.Scene {
         // and instead wait until we need them, based on the number of space bar presses
 
         // Create white puff animation
+        if (!this.anims.exists("puff")) {
         this.anims.create({
             key: "puff",
             frames: [
@@ -119,6 +129,7 @@ class ArrayBoom extends Phaser.Scene {
             repeat: 5,
             hideOnComplete: true
         });
+    }
 
         // Create key objects
         this.left = this.input.keyboard.addKey("A");
@@ -131,7 +142,7 @@ class ArrayBoom extends Phaser.Scene {
         this.bulletSpeed = 5;
 
         // update HTML description
-        document.getElementById('description').innerHTML = '<h2>Array Boom.js</h2><br>A: left // D: right // Space: fire/emit // S: Next Scene'
+        document.getElementById('description').innerHTML = '<h2>AI ATTACK</h2><br>A: left // D: right // Space: fire'
 
         // Put score on screen
         my.text.score = this.add.bitmapText(450, 0, "rocketSquare", "Score " + this.myScore);
@@ -145,26 +156,45 @@ class ArrayBoom extends Phaser.Scene {
             }
         });
 
+        for(let live = 0; live < this.playerLives; live++){
+            my.sprite.lives[live] = this.add.sprite(35 + (live * 30), 55 , "spaceshipParts", "playerLife1_blue.png");
+            my.sprite.lives[live].setScale(.75);
+        }
+
+        this.playerInvincible = true;
+        this.time.delayedCall(2000, () => {
+        this.playerInvincible = false;
+    }, [], this);
     }
 
     update() {
         let my = this.my;
 
-        
+        this.frameCount++;
+
+        if (this.frameCount % 30 == 0) {
+            let shipNum = Math.floor(Math.random() * 14);
+            if(my.sprite.enemies[shipNum].y > 0){
+                let enemyBullet = this.add.sprite(
+                    my.sprite.enemies[shipNum].x, my.sprite.enemies[shipNum].y, "spaceshipParts", "laserRed01.png" );
+                enemyBullet.setScale(0.75);
+                enemyBullet.angle = 180;
+                my.sprite.enemyBullets.push(enemyBullet);
+            }
+        }
+
         if (this.left.isDown) {
             // Check to make sure the sprite can actually move left
             if (my.sprite.player.x > (my.sprite.player.displayWidth/2)) {
                 my.sprite.player.x -= this.playerSpeed;
             }
         }
-
         
         if (this.right.isDown) {
             if (my.sprite.player.x < (game.config.width - (my.sprite.player.displayWidth/2))) {
                 my.sprite.player.x += this.playerSpeed;
             }
         }
-
         
         if (Phaser.Input.Keyboard.JustDown(this.space)) {
             if (my.sprite.bullet.length < this.maxBullets) {
@@ -175,17 +205,8 @@ class ArrayBoom extends Phaser.Scene {
             }
         }
 
-        // Remove all of the bullets which are offscreen
-        // filter() goes through all of the elements of the array, and
-        // only returns those which **pass** the provided test (conditional)
-        // In this case, the condition is, is the y value of the bullet
-        // greater than zero minus half the display height of the bullet? 
-        // (i.e., is the bullet fully offscreen to the top?)
-        // We store the array returned from filter() back into the bullet
-        // array, overwriting it. 
-        // This does have the impact of re-creating the bullet array on every 
-        // update() call. 
         my.sprite.bullet = my.sprite.bullet.filter((bullet) => bullet.y > -(bullet.displayHeight/2));
+        my.sprite.enemyBullets = my.sprite.enemyBullets.filter((enemyBullets) => enemyBullets.y < 850);
 
     
         for (let bullet of my.sprite.bullet) {
@@ -194,7 +215,8 @@ class ArrayBoom extends Phaser.Scene {
                     // start animation
                     this.puff = this.add.sprite(enemy.x, enemy.y, "whitePuff03").setScale(0.25).play("puff");
                     // clear out bullet -- put y offscreen, will get reaped next update
-                    bullet.y = -100;
+                    bullet.y = -200;
+                    //cant be equal in y place as they might acidentally collide giving extera points
                     enemy.y = -100;
                     // Update score
                     this.myScore += enemy.scorePoints;
@@ -208,9 +230,30 @@ class ArrayBoom extends Phaser.Scene {
             }
         }
 
+        for (let enemyBullet of my.sprite.enemyBullets) {
+            if (!this.playerInvincible && this.collides(enemyBullet, my.sprite.player)) {
+                    // start animation
+                    if(this.playerLives > 1){
+                    this.puff = this.add.sprite(my.sprite.player.x, my.sprite.player.y, "whitePuff03").setScale(0.25).play("puff");
+                    }
+                    enemyBullet.y = -200;
+                    enemyBullet.x = -200;
+                    this.updateScore();
+                    this.sound.play("dadada", {
+                        volume: .003   // Can adjust volume using this, goes from 0 to 1
+                    });
+                    this.updateLives();
+            }
+        }
+
+
         
         for (let bullet of my.sprite.bullet) {
             bullet.y -= this.bulletSpeed;
+        }
+
+        for (let enemyBullet of my.sprite.enemyBullets) {
+            enemyBullet.y += this.bulletSpeed;
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.nextScene)) {
@@ -219,7 +262,7 @@ class ArrayBoom extends Phaser.Scene {
 
         if (this.enemyCheck()){
             for (let bullet of my.sprite.bullet) {
-                bullet.y = -100;
+                bullet.y = -200;
             }
             this.timesPlayed++;
             this.scene.restart()
@@ -243,5 +286,27 @@ class ArrayBoom extends Phaser.Scene {
     updateScore() {
         let my = this.my;
         my.text.score.setText("Score " + this.myScore);
+    }
+
+    updateLives() {
+        if(this.playerLives <= 1){
+            this.timesPlayed++;
+            this.myScore = 0;
+            this.playerLives = 3;
+            this.scene.restart();
+        }else{
+        let my = this.my;
+        for(let life of my.sprite.lives){
+            life.visible = false;
+        }
+        this.playerLives--;
+        for(let live = 0; live < this.playerLives; live++){
+            my.sprite.lives[live] = this.add.sprite(35 + (live * 30), 55 , "spaceshipParts", "playerLife1_blue.png");
+            my.sprite.lives[live].setScale(.75);
+        }
+        console.log(this.playerLives);
+
+    }
+
     }
 }
