@@ -1,9 +1,6 @@
 class GameScene extends Phaser.Scene {
     constructor() {
-        super("arrayBoom");
-
-
-
+        super("GameScene");
         // Initialize a class variable "my" which is an object.
         // The object has two properties, both of which are objects
         //  - "sprite" holds bindings (pointers) to created sprites
@@ -291,9 +288,14 @@ class GameScene extends Phaser.Scene {
     updateLives() {
         if(this.playerLives <= 1){
             this.timesPlayed++;
+            if (this.myScore > highScore){
+                highScore = this.myScore;
+            }
             this.myScore = 0;
             this.playerLives = 3;
             this.scene.restart();
+            this.scene.stop('GameScene');
+            this.scene.switch('StartScreen');
         }else{
         let my = this.my;
         for(let life of my.sprite.lives){

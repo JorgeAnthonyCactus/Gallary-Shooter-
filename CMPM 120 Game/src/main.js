@@ -22,8 +22,9 @@ let config = {
     fps: { forceSetTimeOut: true, target: 60 },   // ensure consistent timing across machines
     width: 750, 
     height: 800,
-    scene: [GameScene]
+    scene: [StartScreen, GameScene]
 }
+
 
 
 const game = new Phaser.Game(config);
