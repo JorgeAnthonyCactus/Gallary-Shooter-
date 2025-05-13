@@ -109,6 +109,28 @@ class GameScene extends Phaser.Scene {
         my.sprite.enemies[13].scorePoints = 25;
         my.sprite.enemies[14].scorePoints = 25;
 
+        for (let i = 0; i <= 14; i++) {
+        let enemy = this.my.sprite.enemies[i];
+        if (enemy.y > 0 && i % 2 == 0) {
+        this.tweens.add({
+            targets: enemy,
+            x: enemy.x + 50, // Move 45 pixels to the right
+            duration: 500,   // Duration of the sway (in milliseconds)
+            yoyo: true,      // Make it sway back to the original position
+            repeat: -1,      // Repeat indefinitely
+            ease: 'Sine.easeInOut' // Smooth easing for the sway
+        });
+    }else {
+        this.tweens.add({
+            targets: enemy,
+            x: enemy.x - 50, // Move 45 pixels to the right
+            duration: 500,   // Duration of the sway (in milliseconds)
+            yoyo: true,      // Make it sway back to the original position
+            repeat: -1,      // Repeat indefinitely
+            ease: 'Sine.easeInOut' // Smooth easing for the sway
+            });
+    }
+}
         // Notice that in this approach, we don't create any bullet sprites in create(),
         // and instead wait until we need them, based on the number of space bar presses
 
@@ -126,6 +148,7 @@ class GameScene extends Phaser.Scene {
             repeat: 5,
             hideOnComplete: true
         });
+
     }
 
         // Create key objects
@@ -164,12 +187,13 @@ class GameScene extends Phaser.Scene {
     }, [], this);
     }
 
+
     update() {
         let my = this.my;
 
         this.frameCount++;
 
-        if (this.frameCount % 30 == 0) {
+        if (this.frameCount % 15 == 0) {
             let shipNum = Math.floor(Math.random() * 14);
             if(my.sprite.enemies[shipNum].y > 0){
                 let enemyBullet = this.add.sprite(
@@ -179,6 +203,7 @@ class GameScene extends Phaser.Scene {
                 my.sprite.enemyBullets.push(enemyBullet);
             }
         }
+
 
         if (this.left.isDown) {
             // Check to make sure the sprite can actually move left
